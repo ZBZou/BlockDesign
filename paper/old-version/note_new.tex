@@ -1,0 +1,163 @@
+\documentclass[11pt]{article}
+
+
+% \IEEEoverridecommandlockouts               % This command is only needed if
+%                                            % you want to use the \thanks command
+
+% \overrideIEEEmargins                     % Needed to meet printer requirements.
+
+\usepackage[style=ieee]{biblatex}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{fullpage}
+\usepackage{subcaption}
+\usepackage{url}
+\usepackage{csquotes}
+\usepackage[american]{babel}
+
+
+% \DeclareMathOperator{\atantwo}{atan2}
+
+% \DeclareMathOperator{\arctantwo}{arctan2}
+
+%\setlength{\belowcaptionskip}{-6pt}
+\setlength{\textfloatsep}{8pt}
+
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+\DeclareMathOperator{\atantwo}{atan2}
+
+\DeclareMathOperator{\arctantwo}{arctan2}
+
+\addbibresource{abrv.bib}
+\addbibresource{refs-chains.bib}
+\addbibresource{djbref.bib}
+\addbibresource{swarm.bib}
+
+
+
+\title{Automated design of joints}
+\author{Weifu Wang \and Devin Balkcom}
+
+
+\newcommand{\bo}{\mathbf o}
+\newcommand{\bq}{\mathbf q}
+\newcommand{\bp}{\mathbf p}
+\newcommand{\bd}{\mathbf d}
+\newcommand{\bn}{\mathbf n}
+\newcommand{\bc}{\mathbf c}
+
+\begin{document}
+\maketitle
+
+
+\noindent\textbf{Goal: } The goal for this study is to find the {\em best} design for peg-socket relationships so that even when there exist error in the manufacturing process, the possible motion permitted between the joints are bounded to a minimum. 
+
+We will make the following assumptions: 
+\begin{itemize}
+\item The contacts between the peg and sockets are a bounded number of point contacts;
+\item The manufacturing error $\epsilon$ is uniform; 
+\item When no error is present, the contacts between the peg and socket should immobilize the peg; 
+\end{itemize}
+
+
+Given a peg of a fixed design, it can move or {\em rock} inside the defected socket by a different amount given different socket designs. Though we want to optimize both the peg and the socket to allow the minimum rocking under manufacturing error, the unconstrained problem may not be solvable. We therefore first attack the following problem: 
+
+\noindent\textbf{Problem 1: } Given an arbitrary (fixed) polygonal socket design described by a sequence of $m$ points in counter clockwise order, find a collection of $n$ point contacts between the peg and the socket so that when the socket is manufactured with an uniform $\epsilon$ error, the peg can move / rock inside the socket by the least amount. 
+
+We assume the socket to be polygonal to simplify the problem, as distance constraints with lines are much easier to compute and maintain. Second, we let all the manufacturing error be allocated to the socket also for simplification. It is easy to compute the new polygonal vertices and edges even when errors are introduced, while it would be more challenging to represent the contact points on the peg when errors are introduced. 
+
+One observation is that, given a socket with $\epsilon$ uniform error, i.e. the edges of the polygon is dilated outwards by $\epsilon$, no matter where the contact points are, the peg inside the socket will be able to translate by $\epsilon$ along either $x$ or $y$ direction. In other words, a translational rocking of $\epsilon$ is unavoidable. The rotation permitted by $\epsilon$ error, however, is affected by the locations of the contact points. Once the peg is rotated, the possible translation may further be limited. Therefore, one of the primary goal in the design process is to reduce the possible rotation of the peg under error. 
+
+Let us denote the $m$ vertices (counter-clockwise) of the socket by $u_1, u_2, \ldots, u_m$, and the $n$ contact point location in the joint frame by $v_1, v_2, \ldots, v_n$. The joint frame have the configuration $(x, y, \theta)$ in the world frame. Then, it is easy to represent that the coordinates of the contact points in the world frame, which we denote as $^wv_i = (^wx^v_i, ^wy^v_i)$. Further, let us denote $u_i = (x^u_i, y^u_i)$ and $v_i = (x^v_i, y^v_i)$, and the line connecting from $u_i$ to $u_{i+1}$ as $l_{i, i+1}$, and the normal of this line as $n_{i, i+1}$. We can write, 
+\begin{eqnarray}
+T_p = \begin{bmatrix}
+\cos\theta & -\sin\theta & x\\
+\sin\theta & \cos\theta & y\\
+0 & 0 & 1
+\end{bmatrix}\\
+\begin{pmatrix}
+^wx^v_i \\ ^wy^v_i \\ 1
+\end{pmatrix} = T_p\cdot\begin{pmatrix}
+x^v_i \\ y^v_i \\ 1
+\end{pmatrix}
+\end{eqnarray}
+
+Further, denote the signed distance of a point $p = (x_p, y_p)$ to line $l$ that passes through point $q = (x_q, y_q)$ with normal $n = (n_x, n_y)$ as $d^l_p = n\cdot \overrightarrow{qp}$. When the socket is built with error $\epsilon$, denote the vertices of the dilated polygon as $u^e_i = (x^e_i, y^e_i)$. The new vertices can be computed as follows. First, find the normal of all the $l_{i, i+1}$: $n_{i, i+1}$. Move $u_i$ and $u_{i+1}$ along $-n_{i, i+1}$ by $\epsilon$, and a new line $l^e_{i, i+1}$ can be computed from the new points. Then, intersect the new $m$ lines to get the $m$ new vertices $u^e_i$. 
+
+When there is no error, the contact points $^wv_i$ cannot penetrate the socket, thus $d^{l_{i, i+1}}_{^wv_i} \geq 0$. When the error is introduced to the socket, the peg can rotate, but still cannot penetrate the socket, meaning $d^{l^e_{i, i+1}}_{^wv_i} \geq 0$ as well. 
+
+For simplicity, let the configuration of the peg frame be $(0, 0, 0)$ when the error is not introduced to the socket. In this case, $^wv_i = v_i$. We then can write the above problem in the form of an optimization, 
+\begin{eqnarray}
+&\min\max |\theta|&\\
+\mathrm{subject\ to: }&&\nonumber\\
+n_{i, j}\cdot\overrightarrow{u_i\ ^wv_k} \geq 0,\ &\forall 1\leq i\leq m&, 1\leq k\leq n, j={i+1\mod m}\label{eq:no_error_constraint}\\
+n^e_{i, j}\cdot\overrightarrow{u^{e}_{i}\ ^wv_k} \geq 0,\ &\forall 1\leq i\leq m&, 1\leq k\leq n, j={i+1\mod m}\label{eq:error_constraint}
+\end{eqnarray}
+
+Equation~\ref{eq:no_error_constraint} represents the signed distance constraint of the peg with the socket with no error. Equation~\ref{eq:error_constraint} represent the signed distance constraint between the peg and the socket with error $\epsilon$. $n^e_{i, j}$ is the normal of the line $l^e_{i, j}$, which is the line connecting $u^e_i$ to $u^e_{i+1}$. Here, the $u_i$ are known, thus $u^e_i$ can be computed, therefore also known. The variables are $(x^v_i, y^v_i)$, $x$, $y$, and $\theta$: the locations of the contact points in the peg frame, and the configuration of the peg frame. 
+
+The objective function can be interpreted as follows, we are attempting to minimize the maximum possible rotation of a given peg inside the socket with error, with peg not penetrating the socket. The absolute value of $\theta$ is added because the rotation can go both direction, especially hen the socket is symmetric. Even when the socket or the contact locations are not symmetric, we want to bound the direction that the peg can rotate the most. 
+
+
+
+\noindent\textbf{Direction optimization of problem 1: } Given the above non-linear optimization, it is easy to setup an optimizer attempting to solve the problem. The minimize the maximum of $|\theta|$ can be substituted by introducing another variable $z$, changing the objective to be $\min z$, while adding constraint of $z\geq |\theta|$. 
+
+Because all the non-penetrating constraints are created to be non negative constraints, which is duo to the fact that we do not know which contact point can contact which socket edge. This, however, would allow non of the contact points to contact the socket edge even when there is no error, and even when the socket is having error, the peg does not need to contact the the socket edge. 
+
+With the above substitution of the $z\geq|\theta|$, which is a common technique used in $\min\max$ optimization, the optimization is not really trying to find the minimum of the maximum of $|\theta|$. A simple test of the optimization objective $\min\max |x|$ with no constraint on $x$ would yield a similar problem with the same substitution trick. 
+
+Mathematically, the objective function would return a very small $z$ when we set $z >= x$ and $z\leq -x$, and a small $x$ as well. Numerically it makes sense, as $z$ is minimized, which is the objective of the optimization. However, we can clearly tell that $x$ is not reaching its maximum possible value, thus the optimization is not really solving the objective $\min\max |x|$. Therefore, we would encounter the same problem if we attempt to directly solve the optimization for problem 1. Test show that for any given socket design, the optimization with the same substitution trick would yield a small peg not contacting any edge of the socket. 
+
+This suggests that the substitution trick is wrong, and we should find a better way to solve the $\min\max|\theta|$. 
+
+
+\noindent\textbf{Modified constraints and optimization on problem 1}
+
+Observing that the planned contacts are not actually in contact with the socket even when the socket is without error based on the above optimization, the first intuition is that if the planned contacts actually contacts the boundary of the socket, the resulting peg design would yield a bounded $\theta$. The hope is that when the $\theta$ is bounded, the optimization substitution trick would yield a solution that actually minimize the maximum possible value of $|\theta|$. 
+
+However, a simple test shows that this trick does not work. Consider the same optimization example we used before, $\min\max |x|$, now with one constraint on $x$: $x \leq 5$. Solving this optimization by using the substitution trick yield a similar result shown above, with $x$ adapting a value close to $0$, and so does $z$. 
+
+With the given observation, we know that if we force the equality constraint on the original problem 1, meaning that we force the points contact points to have signed distance $0$ with some selected edges of the socket, even though $\theta$ is bounded, the optimization would still select $\theta$ to be a small angle close to $0$, and only use the $x$ and $y$ to satisfy the equality constraint. 
+
+One way to address this issue would be to force the contact to be made with a different edge of the socket in the error model, thus invalidating the translation offset made by $x$ and $y$, thus forcing $\theta$ to be the large and not close to $0$. If we loop over all possible combinations of the different contact-point and edge relations, and selecting the one that have smallest maximized $|\theta|$, we should be able to find the same result as the original optimization. 
+
+One additional observation contradicts the intuition. Since when the rotation happens, the translational motion of the peg can increase or reduce the rotational angle by moving away from or towards the edge that makes the new contact respectively. This may make the optimization minimize a $\theta$ smaller than its maximum possible value. 
+
+Putting all the above analysis together, modification of the constraints would not validate the substitution trick, because the constraints associated with $\theta$ is not {\em pushing} $\theta$ towards a large value. Therefore, the substitution trick to minimize the maximum of $|\theta|$ does not work directly for the proposed optimization formation for problem 1. 
+
+\noindent\textbf{Alternative method to solve the optimization}
+
+A closer inspection of the constraints can give us new ideas about how to approach the optimization problem. The constraints that limits the growth of the magnitude of $\theta$ is the non-penetration relation between the peg and the socket. When any increase of the magnitude of the $\theta$ would violate one of the non-negative constraints with $u^e_i$, we can say that for the give design of the peg and the socket, the maximum $\theta$ is known as the last value before violating those constraints. 
+
+Given the non-penetration constraint between the peg and the socket with errors, we can write out the equation for computing $\theta$ by setting one of such constraints to be equality constraint. Let us use the $i$th edge and the $j$th contact point as an example. Here, we will not treat $x^v_i$ and $y^v_i$ as unknown variables. Further, we will treat the coordinates of $u^e_i = (x^e_i, y^e_i)$ and $u^e_{i+1}$ as known variables, which can be computed by using the methods mentioned above. By using their coordinates, we can also compute the normal $\hat{n}_i$ of the line $l^e_i$. We will further treat $\hat{n}_i = (\hat{n}^i_x, \hat{n}^i_y)$ as known variables without writing how to derive those values. 
+
+\begin{eqnarray}
+(\hat{n}^i_x, \hat{n}^i_y)\cdot (^wx^v_i-x^e_i, ^wy^v_i-y^e_i) = 0\\
+^wx^v_i = \cos\theta x^v_i - \sin\theta y^v_i + x\\
+^wy^v_i = \sin\theta x^v_i + \cos\theta y^v_i + y\\
+\cos\theta\cdot(\hat{n}^i_x*x^v_i+\hat{n}^i_y*y^v_i) + \sin\theta\cdot(\hat{n}^i_y*x^v_i-\hat{n}^i_x*y^v_i) + (\hat{n}^i_x*x-\hat{n}^i_x*x^e_i) + (\hat{n}^i_y*y  - \hat{n}^i_y * y^e_i) = 0
+\end{eqnarray}
+
+By treating all other variables as known variables, we can write out the equation for $\theta$: $\cos\theta\cdot A + \sin\theta\cdot B + c = 0$ where $A = (\hat{n}^i_x*x^v_i+\hat{n}^i_y*y^v_i)$, $B = (\hat{n}^i_y*x^v_i-\hat{n}^i_x*y^v_i)$, and $C = (\hat{n}^i_x*x-\hat{n}^i_x*x^e_i) + (\hat{n}^i_y*y  - \hat{n}^i_y * y^e_i)$. We can convert this equation in the form of either $\sin\theta$ or $\cos\theta$, thus it is possible to take the derivative of this equation to find how to increase $\theta$ with respect to $x^v_i$, $y^v_i$, and also how $x$ and $y$ affects the change of $\theta$ if all other variables are fixed. 
+
+In addition, not all equations yield the same value for $\theta$, even though the rate of change for $\theta$ may be derived from the equations. What is more, a single contact point can contact at most two joining edges of the socket. Therefore, only a subset of the non-penetration constraints can be set to be equality constraints for sockets with error. In addition, since each of $x^v_i$ and $y^v_i$ are bounded by the non-penetrating constraints with the socket edges without errors, we can do a direct optimization process to find the possible values for $\theta$, and how changing the contact point locations can affect the possible value for $\theta$. 
+
+One notable detail is that, by setting the non-penetration constraints to be equality constraints, it is equivalent to maximizing $\theta$ under the assumption of a particular contact mode. Therefore, by looping over all contact mode, and compare the minimum of those allowed $\theta$, one can find the solution to the minimax in the formation of the problem 1. 
+
+
+
+
+\noindent\textbf{Limiting the possible contact point locations with error-free sockets: } 
+
+Under the assumption that the origin of the peg frame overlaps with the origin of the world frame, and the socket placed around the origin in the world frame, then it is possible to bound the possible locations of the contact points based on the allowed angle of rotation when errors are introduced. Given an $\epsilon$ error, and a possible rotation angle that does not exceed $\Theta$, the possible planned contacts can only be placed in the error-free socket. 
+
+We can find the possible contact point locations by rotating the error-free socket by an angle $\Theta$, pretending that the error-free socket is attached to the peg. There exist overlapping region between the error-free socket and the socket with error, and the contacts between the peg and the error-free socket cannot exist in the overlapping region. The argument is that if the contact is planned in those overlapping region, the $\Theta$ rotation angle would create penetration between peg and the socket with error, thus violating the maximum rotation angle $\Theta$. 
+
+Given the above argument, we can then rotate and translate the error-free socket to find the overlapping region, to reduce the possible region of contact between the socket and the joint. 
+
+Of course, this analysis provides no information on what is the maximum rotation angle allowed, or solve the minimization of the maximum of $|\theta|$ problem. This only provides a possible bound if we know that we do not want the peg to rotate more than a certain angle. 
+
+
+\end{document}

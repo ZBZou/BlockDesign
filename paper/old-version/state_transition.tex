@@ -1,0 +1,199 @@
+\documentclass[11p]{article}
+
+
+\usepackage{fullpage}
+\usepackage{amsthm}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{hypothesis}{Hypothesis}
+
+
+
+
+\title{Analyzing the transitions between contact modes for stability and ease of assembly}
+\author{Weifu Wang}
+\date{}
+
+
+\begin{document}
+\maketitle
+
+\section{Setup}
+
+In this document, we will use the following terms to study the stability and ease of assembly of joinery blocks. In an assembly with joineries, we focus on the relation between a pair of blocks and their interactions. Among the pair, there will be a block with a {\em male connector}, which we usually refer as {\em peg}, and a block with {\em female connector}, which we refer as {\em socket}. We will start the analysis in 2D, and show that the analysis holds on that plane for any shape with the same 2D projections on that plane. 
+
+We will assume the peg and the socket make contact at finite many point contacts. The finite number is an obvious bound for the simplicity of the analysis. The point contact assumption will be used without justification for now. We will introduce the justification later. 
+
+We will further assume the point contacts are made because the peg has finite many {\em vertices}, which we call {\em contact points}, whose convex hull covers the entire peg. At the same time, the socket will have piece wise smooth edges, with finite many discontinuity. For simplicity, we will assume the edges are linear for now, and relax the assumption later. One simple justification for the linear edge is that curves can be approximated by linear segments, and given a fixed precision, there only needs to be a finite many linear segments to approximate any curve. 
+
+Let us label the contact points on the peg as $c_1$, $c_2$, $\ldots$, $c_m$ counter-clockwise, and label the edges of the socket as $e_1$, $e_2$, $\ldots$, $e_n$ also counter-clockwise. 
+
+
+
+\section{Contact modes}
+
+Define a {\em contact mode} as a {\bf unique} combination of contact points and edges who make contact, i.e. a unique set of pairs $(c_i, e_j)$ where each $c_i$ is in contact with edge $e_j$. 
+
+
+In each contact mode, the same contact points contact the same set of edges. To change the contact mode, motions need to be performed thus forcing the contact points to move from one edge to another. The motion can be viewed as the result of external forces. Thus, we can view the change of contact mode as the consequences of external forces. 
+
+
+Given a design of a peg and socket, not all combinations of $(c_i, e_j)$ pairs are possible as a potential member of a contact mode. Some pairs are impossible due to geometric constraints, some pairs conflict with other pairs for similar reasons. What is more, a possible contact mode may not be directed connected with another valid contact mode, i.e. to change from contact mode $A$ to contact mode $B$, at least one additional mode needs to be traversed. 
+
+Therefore, we can view the transition among all possible contact modes between a peg and a socket as a graph, which is not complete. When arbitrary force can be applied, the transition can be reversible, thus the graph is undirected. When the external force applied has limitations, such as direction, some transitions may not be reversible, thus the graph becomes directed. 
+
+When we analyze the stability, we want to know the maximum possible motion of the peg inside the socket, thus we can introduce arbitrary force. The resulting contact motion transition graph is an undirected graph. However, during the assembly step, i.e. insertion process, the applied force is bounded to a limited range of magnitudes and orientations. Then, the transition graph becomes a directed graph. 
+
+The view of the contact mode is inspired by the sensorless manipulation work by Matt Mason, which studies whether a fixed set of motions can always orient a part without sensing feedback. The insertion process can be viewed as a process with limited or no feedback, thus given a particular peg design, analyzing the ease of insertion can be equivalent to answering following question: does there exist a socket design that always guide the peg to the targeted configuration when errors exist? 
+
+
+
+\section{Insertion analysis}
+
+Here, we are interested in the assembly process of joineries that does not need adhesives, which then are locked by geometry. In order for such joineries to work, there must exist a direction where the peg can be inserted into the socket, and motion along the insertion direction will be prevented by future blocks so that the entire assembled structure cannot move. 
+
+Then, the insertion process can be imagined as very similar to a peg-in-hole problem, and can be described as follows, under the existence of errors. Let us assume the socket is fixed in place. 
+\begin{itemize}
+
+\item The peg should be inserted into the socket so that the tip of the peg aligns with the depth direction of the socket; 
+
+\item The external force is applied along the direction of the peg, the orientation of the force is within $(-\alpha, \alpha)$ of the orientation of the peg $\theta$. 
+
+\item The initial insertion orientation of the peg is within $(-\beta, \beta)$ of the depth direction of the socket; 
+
+\item The initial insertion location of the peg is within $(-\Delta, \Delta)$ offset of the centerline of the socket along the width direction of the socket. 
+
+\end{itemize}
+
+In the above description, we assume that the existence of error in sensing and in the execution. The force can be misaligned with the direction of the peg due to imprecise grasp, and the initial insertion location and direction can be off due to sensing errors. 
+
+Unlike the peg-in-hole problem, where the hole is of a fixed design, we have the luxury of designing the socket so that we do not need to employ a insertion motion plan, but rely on the design of the socket to passively guide the peg into the bottom of the socket despite the errors in the execution and the sensing. 
+
+\subsection{Modeling the insertion as an optimization}
+
+One of the first intuition is to describe the insertion process as a relation among contact points and edges, and optimize the {\em easiness} of the insertion, i.e. enlarge the capture region of the socket for the given peg. The optimization formation have the advantage of the possibility to employ existing powerful optimization tools. 
+
+However, one problem of the optimization model is that the insertion is an active changing process. As the insertion progress, the contacts between the peg and the socket may change so that the formation of the optimization may need to change. As a result, the optimization may become {\em time dependent}, which can be much more complex to solve. 
+
+To fully describe the changing nature of the insertion, we thus propose the contact mode transition graph, controlling the design find the shortest path on the graph simulating the optimization process. The edge lengths of the graph, however, can be derived using isolated optimization process so that the overall graph more accurately describes the insertion process, and the resulting path approximates the actual path more closely. 
+
+\section{Contact Mode transition criteria}
+
+To change from one contact mode to another, one needs to move the contact points from the current locations to the next set of relations. If the mode change involves more than a single pair, either all the contact points can change contact edges at the same time, which requires special geometry, or cannot be directly connected on the Contact Mode Transition (CMT) graph. We will first study the change of a single pair of contacts. Then, will introduce the criteria for simultaneous transition for multiple pairs. The change of a single pair of contacts can be generalized into the following few cases. 
+
+
+\subsection{Contact point from one edge to another}
+
+One of the most basic case is when a contact point $c_i$ who originally contacts edge $e_j$ switches to be in contact with edge $e_k$. In most cases, $j$ and $k$ are adjacent edges, where $k = j\pm 1$. However, there are cases where $e_k$ and $e_j$ are not adjacent edges, because the concaveness of the one or both parties involved in the insertion. 
+
+\begin{hypothesis}
+Given a convex socket, under a constant force $F$, and an initial contact pair of $(c_i, e_j)$, if the contact point switches to an new edge $e_k$ to contact and the pair is the only contact between the peg and the socket, then $e_k$ is adjacent to $e_j$. 
+\end{hypothesis}
+
+\begin{proof}
+For simplicity, let us assume the force $F$ have components along the negative direction of $y$ axis, and for edge $e_j$, the component along negative $y$ is larger than the resistant force that prevents the contact point $c_i$ to move along the negative $y$ direction. If the net force on $c_i$ does not permit motion, then the contact may not change. If the net force has components along positive $y$, we can just change the direction of the $y$ axis. 
+
+Therefore, contact $c_i$ moves towards negative $y$ direction, until the point where edge $e_j$ connects the adjacent edge, which we denote $e_a$. Because the socket is of a convex shape, edge $e_a$ must be on the same side of the contact $c_i$. Since $c_i$ is still the only contact point, the contact $c_i$ moves onto edge $e_a$. Since the new pair is $(c_i, e_k)$, then $e_k = e_a$. Thus $e_k$ is adjacent to $e_j$.  
+\end{proof}
+
+If the socket is not of a convex shape, things may become tricky. It then depends on the angle of the next edge. If the next edge lines does not bend beyond the $y$ axis, then the edge $e_k$ is will still be adjacent to $e_j$. If the condition is violated, then the edge $e_k$ may no longer be an adjacent edge to $e_j$. This condition is important to the connection of different contact modes in the construction of the CMT graph. 
+
+The case can be further complicated when there exist other pair of contacts. The other pairs of contacts may geometrically constraint the possible next pair. On the other hand, if knowing the contact switched to another pair of contacts, the other contact pairs must be of a geometry that does not conflict with the contacting condition. 
+
+Formally, let us first only consider the case where the contact pairs are not limited by other contact pairs. Denote $c_i = (x_i^p, y_i^p)$ in the peg frame, where the peg has the configuration of $q_p = (x_p, y_p, \theta_p)$. Then, the coordinates of the contact point in the world frame can be written as $c_i^w = R_pc_i$, where $R_p$ is the transformation matrix relating the peg frame to the world frame. Denote the edge $e_j$ has endpoints $p_i = (x_i, y_i)$ and $p_{i+1} = (x_{i+1}, y_{i+1})$ with orientation pointing from $p_i$ to $p_{i+1}$: $\phi_i$. Similarly $e_k$ has endpoints $p_k = (x_k, y_k)$ and $p_{k+1} = (x_{k+1}, y_{k+1})$ with orientation pointing from $p_k$ to $p_{k+1}$: $\phi_k$. Denote force $F$ as direction $\gamma$, and thus $\gamma \in [\theta_p - \alpha, \theta_p + \alpha]$, where $\theta_p \in [-\beta, \beta]$. Further, let the depth direction of the socket in the world frame be along the negative $y$-axis, and the positive $y$-axis of the peg frame is also along the negative $y$-axis in the world frame. 
+
+In order for the contact point to switch edges, the force must be able to push the contact point towards the next edge, meaning the force must have a component parallel to the contacting edge greater than the friction caused by the component perpendicular to the contacting edge. When there are more than one pair of contacts, as long as the net forces would generate a component pointing towards the next edge greater than the resistant force, the contact point would move towards the next edge. For simplicity, let us first consider only a single pair of contacts. 
+
+Formally, let us write the force $F$ as a vector $\overrightarrow{F} = (F\cos{\gamma}, F\sin{\gamma})$. Then, we can find that for contact $c_i$ and edge $e_j$, the force component parallel to the edge can be computed as $F_s = \overrightarrow{p_jp_{j+1}}\cdot\overrightarrow{F}$. The component perpendicular to the edge $F_n$ can then be computed as $F_n = \overrightarrow{F}\sin(|\gamma-\phi_j|)$, where $|\gamma-\phi_j|$ is the angle between the force vector and the edge $e_j$. 
+
+We first need to ensure that $|F_s| \geq |F_n|$ to allow the contact point to move. Second, we need to make sure that the direction of the $F_s$ points towards $e_k$ to allow the contact point to transfer to that edge. This relation, however, would be a bit challenging to quantify. One way to do this is to compute the distance of $c_i$ to the edge $e_k$ first, let us denote it as $d_0$, and move $c_i$ along $F_s$ by a small amount, and compute distance again, and then compare the distance $d_1$ to $d_0$. If $d_1 < d_0$, then the force is pushing the contact towards edge $e_k$ because edge $e_j$ is linear. We can also test if the vector point from $c_i$ along $F_s$ would intersect the line containing edge $e_k$. 
+
+However, both methods would fell short on determining whether moving the contact $c_i$ to $e_k$ is possible. If $e_k$ is not adjacent to $e_j$, is it possible to jump directly from $e_j$ to $e_k$ for contact $c_i$? If $e_k$ is adjacent to $e_j$, is the angle between $e_j$ and $e_k$ possible for the contact $c_i$ to successfully move from $e_j$ to $e_k$? Will the geometry of the peg and other part of the socket create collision? 
+
+The answers to the above questions are also hard to quantify. A possible test can be moving the contact $c_i$ to $e_k$, and see if there exist collision free configuration of the peg that would permit the contact. To write out an analytical equation for the collision check would be difficult. However, it is possible to write the constrains for non-collision: all contact points are on one side of the line-segment sequence. 
+
+Given a pair of vertices on the CMT graph that is differentiated by a single contacting edge, we can use the above tests to see if the two vertices can be connected. If the connection exists, we can also compute the length of the edge by calculating the time it would take the force $F$ to move $c_i$ from $e_j$ to $e_k$. 
+
+
+\subsection{Change contact points on the same edge}
+
+To change a single contact point without changing the contact edge, there need to exist a torque on the peg. Thus, if the pair of $c_i$ and $e_j$ is the only pair in the contact mode, it is impossible for such transition to happen. 
+
+When there do exist other pairs of contacts, we can write the requirements for the transition as the net torque is non-zero, about another contact point other than $c_i$, and the torque would move the next contact point $c_k$ towards the edge $e_j$. Similarly, there would need to exist constraints that guarantee the peg does not penetrate the socket. Since the constraints and requirements of torque relations is similar to that derived above, we omit the equations for now. 
+
+\subsection{Adding new pair of relation}
+
+To add a new pair of contacts, the force must also push the new contact point towards the new contacting edge. There exist two possible scenarios. 
+
+First, along the direction of $F$ and constrained by the current contact pairs, no torque is generated and the new contact pair is either along the direction of $F$, the peg rotates as the result of changing contact edges. There exist torque, and the torque rotates the peg to generate new contact points. 
+
+The requirements for such scenario is analogous to the requirements above, thus we omit them for now. 
+
+\subsection{Removing a pair of relation}
+
+The removing of a contact pair can also happen in two scenarios. First, the rotation of the peg would force a contact pair to disappear. Second, the socket with concave edges coupled with the geometry of the peg not permitting the contact pair to retain the relation. 
+
+\subsection{Changing both contact point and edge}
+
+The change of both contact point and edge can be imagined as a removal of a contact pair and adding another contact pair. Thus, the requirements are similar. 
+
+\subsection{Remaining discussions}
+
+The above discussions are only valid for the change of a single contact pair. To account for the change of multiple contact pairs, the conditions would become more complex. However, we can validate the result by using the approach from Balkcom 2002, where the authors proposed a method to test whether the placement of fingers would resist arbitrary forces. The problem we are testing is almost the complement of what the approach was intended to do. We would like to know given a fixed force and the placement of fingers, what are the possible movements of the peg inside the socket. 
+
+The approach requires the knowledge of configuration and geometry of the peg, and the location of the contacts. It does not need to know the geometry of the socket, which is exactly what we have. Therefore, the approach would fit perfectly into our approach. 
+
+\section{Finding all possible contact modes}
+
+In order to apply the approach, we will need to first find all possible contact modes. One approach is a brute force approach, which loops over all possible pairs and combinations of pairs. This approach would scale badly into 3D, and each contact mode needs to be convoluted with all possible contact mode from other projections. However, if the possible contact modes on the plane is relatively small, it is possible to do the brute force search. 
+
+Another approach would be to derive possible contact modes by a back-tracing approach, i.e. moving the peg out of the socket and study what are the possible contact modes. This approach would build upon the following hypothesis. 
+
+\begin{hypothesis}
+Given a planar peg and socket design where the peg is convex. When the peg is fully inserted into the socket, the number of contact pairs in the contact mode reaches the maximum value. 
+\end{hypothesis}
+
+We will skip the proof of the hypothesis for now. 
+
+If the hypothesis holds, we can start from the fully inserted configuration, rotate and translate to find all possible contact mode. Then, move the peg in the negative direction of the depth of the socket. We will need to re-test the rotation and horizontal translation every-time a contact point move across a joining vertex between two edges of the socket. 
+
+Any of the above two process would give all the possible contact modes for a given peg and socket design. 
+
+\section{Building the Contact Mode Transition (CMT) graph}
+
+Once all the vertices of the CMT graph is generated from the above process, we need to construct the graph by connecting edges. To connect a pair of vertices, we need to perform the above tests that permits the change of a contact pair. 
+
+The result would generate edges as well as the potential length of the edge. Thus, we have a weighted graph. 
+
+\section{Ideal sub-graph of the CMT-graph}
+
+Once we have the CMT graph, we can now investigate the insertion process. The best insertion process is to go to the fully inserted vertex as quickly as possible without any detour, stalemate, or reversal. The problem becomes finding a sub-graph on the CMT-graph. Or even better, find the shortest path. 
+
+Finding a shortest path on a graph is a trivial task. With the shortest path, we can find the common requirements for the vertices and edges on the shortest path, and use those to limit the design of the socket. As most of the requirements presented above is analytical and represented symbolically, it is possible to find a set of equations for the shortest path and generate the intersections of parameters satisfying those equations, which can be again modeled as an optimization process. 
+
+\section{Generating the design}
+
+Omit for now. 
+
+\section{Extending the analysis to stability}
+
+The analysis of contact mode transitions would also be able to be extended to the analysis of stability.
+
+Given a socket with and without error, there are two sets of parallel edges. Given a peg with $n$ contact points, there is only one possible contact mode with the socket without error. This contact mode, however, is up to design for us. It is possible to loop over the possible contact modes for $n$ contact points and $m$ edges on the socket. 
+
+Once the contact mode is finalized, we can derive the potential contact modes between the peg and the socket with error. Similarly, we can compute whether a contact mode can be connected to the original contact mode between the peg and socket without error, and possibly the distance of that edge. 
+
+With those edge lengths, we can find the furthest contact mode from the original contact mode with the no-error socket, and compute the distance. Among all the possible starting contact mode, we want this maximum distance to be small, thus find the best {\em design} for the peg. 
+
+
+\section{Conclusions}
+
+
+Overall, we are trying to turn an optimization problem of analyzing the stability, which is the minimization of the maximum. By using the CMT graph, we turn the minimax optimization into an single optimization of minimizing the longest distance on a graph. 
+
+We also used the CMT graph to turn an continuous time dependent optimization problem into a discrete graph search problem, where the graph edges are built upon continuous problems and optimization. 
+
+
+
+
+\end{document}

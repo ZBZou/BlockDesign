@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<robot name="triangle">
+  <link name="baseLink">
+    <contact>
+      <lateral_friction value="0.1"/>
+      <rolling_friction value="0.0"/>
+	<restitution value="0.0" />
+    </contact>
+    <inertial>
+      <origin rpy="0 0 0" xyz="-2.069 -1.922 2.0"/>
+       <mass value="23.649"/>
+       <inertia ixx="1896.213" ixy="-103.638" ixz="0" iyy="1897.111" iyz="0" izz="3730.26"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+		<mesh filename="./block_design.obj" scale="1 1 1"/>
+      </geometry>
+       <material name="blue">
+        <color rgba="0 0 0.8 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-2.069 -1.922 2.0"/>
+      <geometry>
+	 	<mesh filename="./block_design.obj" scale="1 1 1"/>
+      </geometry>
+    </collision>
+  </link>
+</robot>
+

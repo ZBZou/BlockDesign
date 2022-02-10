@@ -1,0 +1,140 @@
+Though the insights and the analysis shown above are generic to any insertion based joints, there are details of the design that has not been specified, such as the length of the peg relative the width and the tilt angle of the walls of the hole joint, etc. What is more, the insertion direction maybe outside the plane on which other motions are possible, which invalidates some of the analysis shown above.
+
+Therefore, we will introduce an automated design process that can be used to generate a good design based on the designed relations between blocks. The goal for the design is to provide the most stability after the insertion, as well as providing ease of insertion when error exists in the insertion directions and block locations. 
+
+As discussed above, usually the stability and the ease of insertion are two competing conditions, which we will further show in the proposed design process. We will present the process used to provide stability and ease of insertion separately at first, and then combine the result to balance between the two competing conditions to provide the most suitable design overall. Again, we will consider designed point contacts rather than surface contacts. 
+
+\subsection{Stability design}
+
+
+To make the joint as stable as possible, given the set of constraints provided by the socket, the possible motions allowed for the peg should be limited to a minimum. For simplicity, we will first study the socket-joint design on a plane, and consider the socket with only linear edges. 
+
+If a 3D joint that is symmetric, then analyzing a projection of the socket-joint relation on a plane should be sufficient to bound the motion in all dimensions. If the 3D joint is not symmetric, the possible motion of the joint is also upper bounded by the least constraint intersection plane with the joint. Therefore, we study the joint design first on the plane. The planar constraint will be removed later. 
+
+The assumption of linear edges is included for the simplicity of the analysis and the optimization for the design. A complex curve is hard to parameterize, thus is difficult to optimize the joint design under such constraints. Simpler curves is possible to be adapted while still maintaining the simplicity of the optimization process. However, it is possible to use many short linear edges to approximate a curve, and study the stability. Therefore, we start setting up the problem with linear edges. 
+
+
+Let us consider the following parameterization of the problem. Given a socket with $n$ vertices connected by linear edges, let the $i$th planar vertex be denoted as $v^s_i = (x^s_i, y^s_i)$. Given a joint centered at $(x_0, y_0)$, and $m$ designed contacts with the socket, denote the $i$th designed contact location in the joint frame as $c_i = (x^p_i, y^p_i)$, where the joint frame is centered at $(x_0, y_0)$ and oriented at angle $\theta$ in the world frame in which the socket vertices are defined. Therefore, we can derive a transformation matrix $T$ that transforms the locations of the designed contacts from the joint frame to the world frame. We have, 
+
+\begin{eqnarray}
+T(x_0, y_0, \theta) = \begin{bmatrix}
+\cos\theta & -\sin\theta & x_0\\
+\sin\theta & \cos\theta & y_0 \\
+0 & 0 & 1
+\end{bmatrix}
+\end{eqnarray}
+
+
+The goal then is to minimize the largest possible angle $\theta$ so that the joint is not penetrating the socket. Let the $n$ points on the sockets are labeled counter clockwise, so that to have all the points inside the socket, they are on the left side of each line. Also, denote the location of the designed contacts of the peg in the world frame to be $^wc_i = (^wx^p_i, ^wy^p_i)$, which can be computed as
+\begin{eqnarray}
+\begin{bmatrix}
+^wx^p_i\\ ^wy^p_i\\ 1
+\end{bmatrix} = T(x_0, y_0, \theta) \cdot\begin{bmatrix}
+x^p_i\\ y^p_i\\ 1
+\end{bmatrix}
+\end{eqnarray}
+
+Therefore, putting all things together, we have the following optimization objective. 
+\begin{eqnarray}
+\min\max&\theta\\
+\mathrm{subject\ to: } & \nonumber\\
+(x^s_{k}-x^s_{j})&*&(^wy^p_i-y^s_{j})\nonumber\\
+ - (y^s_{k}-y^s_{j})&*&(^wx^p_i-x^s_{j}) \geq 0 \\
+\forall i\in m, j\in n&,& k=(j+1\mod n)\nonumber
+\end{eqnarray}
+
+Given the above objective function and the constraints, we know that to satisfy the constraints, each possible $\theta$ must put all contacts on the inside of the socket. To minimize the maximum possible $\theta$ that satisfy the constraints, we can find the best design. 
+
+The given optimization, however, cannot be solved unless we specify the $n$ vertices of the socket. One way to solve the given process is to loop over possible locations of the socket, and compare all the best $\theta$ angles for each of the socket design, and choose the one with the minimum $\theta$. However, as the location of the vertices of the socket is not a finite choice, the process can take a long time to find an approximate optimal design. 
+
+Another way to try to solve the given system is to alternate the variable set between the $n$ socket points and $m$ designed contacts. We first find the best location of the designed contacts assuming the location of the vertices of the sockets are known. Then, based on the designed contact locations in the joint frame, which we assume is known based on the results of the previous optimization process, and then compute the best socket vertices locations of this set of contacts. The process iterate until the $\theta$ cannot be reduced. This approach, however, may get stuck in the local minimum as the possible motion of $\theta$ may not be monotonic with respect to the socket and joint design. 
+
+Another big issue is that given the above formation, to allow the smallest possible rotation angle $\theta$, the contacts should immobilize the joint inside the socket. However, this can be guaranteed for any immobilizing grasp, when no error is present. The stability we want is under an uniform error. Therefore, the above constraints should be updated to the following relation:
+\begin{eqnarray}
+(x^e_{k}-x^e_{j})&*&(^wy^p_i-y^e_{j})\nonumber\\
+ - (y^e_{k}-y^e_{j})&*&(^wx^p_i-x^e_{j}) \geq 0 \\
+\forall i\in m, j\in n&,& k=(j+1\mod n)\nonumber
+\end{eqnarray}
+where $x^e_i$ and $y^e_i$ should be the projection of $x^s_i$ and $y^s_i$ outwards for a distance of $\epsilon$, where $\epsilon$ is the uniform error that we may encounter in the manufacturing process. Another way to describe the relation between $v^s_i$ and $v^e_i$ is that for every $j\in n$ and $k = (j+1\mod n)$, we have 
+\begin{eqnarray}
+\overrightarrow{v^s_jv^s_k} \parallelsum\overrightarrow{v^e_jv^e_k}\\
+d_{\parallelsum}(\overrightarrow{v^s_jv^s_k}, \overrightarrow{v^e_jv^e_k}) = \epsilon
+\end{eqnarray}
+where $d_{\parallelsum}(\cdot, \cdot)$ means the shortest distance between two parallel line segments. To guarantee the joints does not expand when there are errors in the socket, we also need to make sure that the contacts are made when there is no error with the socket, and define the given rotation angle $\theta$ to be $0$. Denote the locations of the designed contacts of the joints with the socket in the world frame as $^wc^{p(0)}_i = (^wx^{p(0)}_i, ^wy^{p(0)}_i)$, indicating that the rotation angle $\theta$ is $0$. Also, since $\theta$ can rotate to both directions symmetrically, the objective will also need to involve the absolute value of $\theta$. 
+
+Therefore, putting all together, we will have the following objective, 
+\begin{eqnarray}
+\min\max&|\theta|\\
+\mathrm{subject\ to: } & \nonumber\\
+(x^s_{k}-x^s_{j})&*&(^wy^{p(0)}_i-y^s_{j})\nonumber\\
+ - (y^s_{k}-y^s_{j})&*&(^wx^{p(0)}_i-x^s_{j}) \geq 0 \\
+\forall i\in m, j\in n&,& k=(j+1\mod n)\nonumber\\
+(x^e_{k}-x^e_{j})&*&(^wy^p_i-y^e_{j})\nonumber\\
+ - (y^e_{k}-y^e_{j})&*&(^wx^p_i-x^e_{j}) \geq 0 \\
+\forall i\in m, j\in n&,& k=(j+1\mod n)\nonumber\\
+A \leq &y^s_j&\leq B\\
+\mathrm{where}\\
+\overrightarrow{v^s_jv^s_k} &\parallelsum&\overrightarrow{v^e_jv^e_k}\\
+d_{\parallelsum}(\overrightarrow{v^s_jv^s_k}&,& \overrightarrow{v^e_jv^e_k}) = \epsilon
+\end{eqnarray}
+
+Then, solving the above optimization iteratively should be able to reach a best design locally. One can start the optimization from different initial socket design to get over the local extreme values. The constraint of $A \leq y^s_j\leq B$ is used to limit the total depth of the socket, so it cannot be infinitely deep, as we know from intuition, the longer and thiner the socket is, the smaller the possible motion is given a fixed error of $\epsilon$. Here, both $A$ and $B$ are given constants based on the size of the block that will utilize the joint designs. 
+
+Considering the transition step of optimizing the location of the contact points and the socket vertices. Once we fix the location of the designed contacts on the joint, and attempts to adjust the socket vertices locations, we know from intuition that narrowing the tilt angle of the socket wall towards vertical would reduce the possible motion, and a incline of the socket edges may even further constraint the rotation angle $\theta$. However, there may exist other constraints that prevents the socket wall to tilt in such direction. For example, in a peg-and-hole joint design, the socket cannot be inclined because that would prevent the insertion of the peg that would achieve minimum rotation generated from the above design process. Therefore, given the additional constraints of the joint, we need to add appropriate constraints to the above formation. 
+
+The above constraints are linear with respect to the location of the design contacts on the joint, which is the result of choosing linear edges on the socket design, making it possible to write the gradient analytically to improve the optimization process and step-out of the local extremes without using random based approaches. The alternative step of computing the vertex locations, however, is not linear, thus cannot be computed analytically. 
+
+
+The proposed optimization methods though complete, is pure brute force. One may wish to find better, faster, and more intelligent approach to find the best socket design. Is it possible to find the design faster without relying on an optimization process, which is numerical at least partially in the above process. 
+
+
+
+\subsection{Insertion design}
+
+To guarantee the ease of insertion in the joint design, the process we need to take is a bit different from the above stability analysis. Instead of a discrete set of poses that we need to analyze and limit the possible poses, we are looking at a whole process of insertion. What is more, the definition of ease of insertion can be interpreted in many ways, so that we need to be careful in choosing the parameterization and the formation of the problem. 
+
+Again, the analysis of the ease of insertion only makes sense under the existence of the errors. Here in the insertion process, however, in addition to the manufacturing error, it is the insertion location and direction error that we need to worry about. Therefore, an ease of insertion may be defined to be the design that allows the most amount of error in the insertion direction and block location. In this analysis, let us first assume that the insertion force direction is always along the orientation of the joint frame, which is reasonable under the assumption that the grasp of the blocks have no error. To account for the grasping error, however, the insertion force then can be within a small cone along the joint frame. We will further relax the constraint to allow the insertion direction error later. 
+
+The success of insertion depends on two things. One, during the insertion process, the component of force pushing the joint into the socket should always be larger than the resistant force, such as friction. Two, the joint should never reach a configuration where the joint is not yet fully inserted while no progress can be made given the limit on the force direction and magnitude. For example, a socket with a flat bottom can create such a deadlock condition when the joint tip is in the shape of a triangle. Geometrically, the peg is locked in the corner of the socket, while not all the designed contacts are made near the designed areas. 
+
+For a perfect joint design, we would like the joint frame to reach the $0$ rotation angle even when there exist errors in the insertion direction, or even with grasping error. This means that given the insertion force and any configuration of the joint, we would like there to exist a component of force navigating the joint frame towards the $0$ rotation angle. Such relation is easier to derive if there is not grasping error, meaning that the insertion force is always along the insertion direction. Once the grasping error is introduced, the joint frame may only be pushed into $(-\sigma, \sigma)$ range where $\sigma$ is small. 
+
+To satisfy the above constraints, we need to not only look at the geometric relations, but also the insertion force and its components with respect to the socket edges. This, however, requires us to know which edges of the socket the joint is making contacts with. In this process, we first choose to assume that the joint design is known, and adjust the socket vertex locations. 
+
+Since again we are assuming the socket edges are linear, then the displacement of the block should not affect the force decomposition. Therefore, we again only need to consider the rotation in this case. To satisfy the first condition, we need to maximize the angle $\phi$ so that the force decomposition will always push the joint towards the bottom of the socket. We therefore can write the following objective given insertion force $F$ and friction coefficient $\mu$, let $\overrightarrow{A} = \overrightarrow{F\cos(\arctan2(y^p_i, x^p_i))}$, $\overrightarrow{B} = \overrightarrow{A}\cdot\overrightarrow{v^s_jv^s_k}$, and $\overrightarrow{C} = \overrightarrow{A\cos(\arcsin(B/A))}$, 
+
+\begin{eqnarray}
+\max &\phi&\\
+\mathrm{subject\ to: }&&\nonumber\\
+\sum(|\overrightarrow{B}| - \mu\cdot |\overrightarrow{C}|) &>& 0\\
+\forall\mathrm{contact\ } i\mathrm{\ with\ edge}& v_jv_k&, k=(j+1\mod n).\nonumber 
+\end{eqnarray}
+
+This step, however, is very easy to satisfy, as we even know geometrically how to place these vertices on the socket. 
+
+The second step, however, is to guarantee that for any $\phi$ that is greater than $0$, the gradient of $\phi$ should be towards $0$. The gradient of $\phi$ depends on time $t$, which has not shown up in the analysis above. The change of $\phi$, however, is based on the above relation between $\overrightarrow{B}$ and $\overrightarrow{C}$. We can define $\phi$ as the following, 
+\begin{eqnarray}
+\phi(t+1) - \phi(t) = \sum(|\overrightarrow{B}| - \mu\cdot |\overrightarrow{C}|)\\
+\forall\mathrm{contact\ } i\mathrm{\ with\ edge} v_jv_k, k=(j+1\mod n)\nonumber
+\end{eqnarray}
+
+Then, to satisfy the second relation, we should maintain that $\phi\cdot\dot{\phi} < 0$, meaning that the $\phi$ should always move towards $0$. The angle $\phi$ now, is no longer the maximum angle allowed in insertion error, but the insertion angle along the insertion process. This means that this step needs to be separate from the above optimization process which maximize $\phi$. However, once a $\phi$ is computed, we will then test the above constraint to see if the condition is satisfied, to decide whether to accept or reject a design. 
+
+Another possible criteria to optimize associated with the insertion process is the time it takes for the insertion. In other words, in the above definition of $\phi$ that is dependent on time, we want to minimize the total time it takes $\phi$ to reach $0$. Therefore, another possible formation is described as below, 
+
+\begin{eqnarray}
+\min T &\\
+\mathrm{subject\ to: }&\nonumber\\
+\phi(T) = 0&\\
+\phi(t) - \phi(t-1) =& \sum(|\overrightarrow{B}| - \mu\cdot |\overrightarrow{C}|)\\
+\forall\mathrm{contact\ } i\mathrm{\ with\ edge\ }& v_jv_k\\
+k=(j+1\mod n),&\ t\leq T&\nonumber
+\end{eqnarray}
+
+
+\subsection{Putting pieces together}
+
+
+
+
+

@@ -1,0 +1,29 @@
+index =1
+before_stab =[-1.6615926535898171, 1.451592653589817]
+after_stab =[-1.7615926535898172, 1.561592653589817]
+index =9
+before_stab =[-1.3815926535898169, 1.3815926535898169]
+after_stab =[-1.491592653589817, 1.491592653589817]
+index =10
+before_stab =[-1.3815926535898169, 1.3815926535898169]
+after_stab =[-1.491592653589817, 1.491592653589817]
+index =11
+before_stab =[0, 0]
+after_stab =[-1.7615926535898172, 1.561592653589817]
+index =12
+before_stab =[-1.6615926535898171, 1.451592653589817]
+after_stab =[-1.7615926535898172, 1.561592653589817]
+
+
+index =9
+before_stab =[0, 0]
+after_stab =[0, 0]
+index =10
+before_stab =[0, 0]
+after_stab =[0, 0]
+index =11
+before_stab =[0, 0]
+after_stab =[0, 0]
+index =12
+before_stab =[0, 0]
+after_stab =[0, 0]

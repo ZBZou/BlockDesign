@@ -1,0 +1,297 @@
+\documentclass[letterpaper, 10 pt, conference]{ieeeconf}
+\IEEEoverridecommandlockouts
+\overrideIEEEmargins
+
+
+\usepackage[backend=biber, style=ieee]{biblatex}
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{fullpage}
+\usepackage{subcaption}
+\usepackage{url}
+\usepackage{csquotes}
+\usepackage[american]{babel}
+\usepackage{comment}
+% \usepackage{amsthm}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+
+% \DeclareMathOperator{\atantwo}{atan2}
+
+% \DeclareMathOperator{\arctantwo}{arctan2}
+
+%\setlength{\belowcaptionskip}{-6pt}
+\setlength{\textfloatsep}{8pt}
+
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+
+
+\DeclareMathOperator{\atantwo}{atan2}
+
+\DeclareMathOperator{\arctantwo}{arctan2}
+
+\newenvironment{myprocedure}[1][htb]
+  {\renewcommand{\algorithmcfname}{Procedure}% Update algorithm name
+   \begin{algorithm}[#1]%
+  }{\end{algorithm}}
+
+
+\addbibresource{abrv.bib}
+\addbibresource{refs-chains.bib}
+\addbibresource{djbref.bib}
+\addbibresource{swarm.bib}
+\addbibresource{peg-in-hole.bib}
+
+
+
+\title{On designing the best peg-in-hole joints}
+\author{Zhibin Zou \and Weifu Wang}
+\date{}
+
+\newcommand{\bo}{\mathbf o}
+\newcommand{\bq}{\mathbf q}
+\newcommand{\bp}{\mathbf p}
+\newcommand{\bd}{\mathbf d}
+\newcommand{\bn}{\mathbf n}
+\newcommand{\bc}{\mathbf c}
+
+\begin{document}
+\maketitle
+
+
+\begin{abstract}
+Skip for now
+\end{abstract}
+
+\section{Introduction}
+
+% \begin{itemize}
+% \item Peg-in-hole problem; 
+% \item Engineering for specific scenarios and requirements; what are design principles? 
+% \item Goal: error reducing; easy implementation with robots under uncertainty; 
+% \end{itemize}
+
+In this work, we present algorithms to automatically design peg-in-hole type joints that allow easy practical insertion subject to sensing, manipulation, and manufacturing error. The peg-in-hole problem has been studied as a theoretical problem a couple decades ago~\cite{}, and lead to back-chaining based approaches that can be applied to many different scenarios. There also has been many studies on how to design and engineer a peg-in-hole type joint for given application and specifications~\cite{}. 
+
+We intend to generalize the problem encountered in many practical uses of insert-based joints, and present an automated procedure to find (best) feasible design that can address those challenges. We consider three major types of errors that may prevent the correct or easy insertion: manufacturing error, sensing error, and manipulation error. 
+
+We evaluate the design from two different sub-processes. First, given the possible errors, can the insertion be successful? Second, given the errors, after insertion, what is the maximum flexibility for the design? The insertion process is a pass-or-fail type of test, though as we will show, we can find the possible design derivatives that will lead to possible failure. Such design changes need to be avoided if possible. The second process evaluating the maximum flexibility after insertion, which we refer as stability, is a continuous measure that can tie into the angle of rotation after insertion. This criteria can be improved by changing the design along the direction that can reduce the rotations. Then, combining these two approaches, we generate the best feasible design for the given constraints. 
+
+In both the insertion process and the stability analysis, we assume a small change of design affects the outcome of the respected process linearly. We believe this is a reasonable assumption. For stability analysis, it has been shown that a linear estimation of the error between assembled blocks is reasonably accurate~\cite{}, while for insertion, the forces that affects the success and failure of the insertion are linear. Following this assumption, our derived designs show advantages compared to both similar and arbitrary designs, in simulation as well as in experiments. 
+
+We also assumed a point-edge contact between the insertion joint and the socket. This assumption is introduced to overcome uncertainties in the manufacturing error. By assuming point-edge contact, the location of contact can still be known despite the manufacturing error, as long as the point-contact cannot be removed by manufacturing error. In this work, the point-contact is introduced as a circular bump on the insertion joint. 
+
+This work has some known flaws. First, the analysis started and is mainly in 2D. Though the 2D analysis is shown to be effective, the actual joints need to be in 3D. How does the 2D analysis extend to 3D is not yet fully analyzed, and is currently ongoing work. We present a simple 3D projection in this work to show the initial results. Second, we did not consider the grasping errors that may exist between gripper and block. Though this error can be removed by designing special grippers and blocks to allow automated alignment. 
+
+% Add figures to show a good design, vs. a bad design. 
+
+
+\subsection{Related work}
+
+
+Assembly with joineries has a long history in construction, such as the dovetail and mortise and tenon are used in carpentry around the world. Most such approaches were engineered and carried out entirely by humans. The major difference between the joinery based assembly and the brick-cement based assembly is the lack of {\em glues} and bonding materials~\cite{zwerger2012wood}, which make the assembly process reversible. Recently, it has been hypothesized that the backbones of theropod dinosaurs interlocked to provide support for the extremely large body mass~\cite{woodruff2016}.
+
+Reconfigurable assembly relying on geometric constraints has been well studied~\cite{song2012recursive, song2017reconfigurable, songcofifab, fu2015computational, Wang-2018-DESIA}. Different interlocking designs has been proposed in the past~\cite{Yao:2017:IDS:3068851.3054740}. 
+
+Autonomous assembly with robots has also been explored before. Andres {\em et al.} created ROCCO to grasp and lay-down blocks for assembly~\cite{andres1994first}, and the similar system was later adapted by Balaguer {\em et al.}~\cite{balaguer1996site}. More systems have been developed recently, such as the system developed by Helm {\em et al.}~\cite{helm2012mobile} and by Giftthaler {\em et al.}~\cite{giftthaler2017mobile}. More novel construction approaches with drones and 3D printing technologies were also explored recently~\cite{willmann2012aerial, augugliaro2014flight, lindsey2011construction, augugliaro2013building, keating2017toward, winsun3dprint}. 
+
+To allow the automation of the joinery-based assembly, there are some compromises one need to make. The joinery design needs to be less complicated for the ease of manufacturing and mass production. Also, the mechanism proposed by the joineries should be simple enough so that even with little adaptability, the robot devices can successfully supply the motions needed for the connection of joineries. Naturally, the joinery-based assembly extends from the idea of modular robots and assembly~\cite{rus2001crystalline, white2005three, romanishin2013m, daudelin2017integrated}. Recently, Schweikardt {\em et al.}~\cite{schweikardt2006roblocks} proposed an educational kit for robotic construction, inspired by LEGO. 
+
+The simplest joint design is insertion-based, where the assembly process is just repeatedly apply translations to blocks while relying on the geometries of the blocks to secure the constructed structure. The classic peg-in-hole problem models this insertion strategy, which was studied by Lozano-Perez {\em et al.}~\cite{Lozano-Perez1984}. Building on the back-chaining approach, many similar systems were developed to study the insertion-based assembly approach~\cite{Mason86, Bruyninckx95, ZhangZOH04}. However, most study focus on the strategy for the insertion rather than the design of the joints. 
+
+The automated design process presented in this work relies on numerical optimization, and a discretization of change in contacts during motion. In 2002, Balkcom {\em et al.} analyzed the possible motions of rigid objects under multiple contacts and given forces~\cite{Balkcom2002c}. In Moll's thesis~\cite{Moll2002}, a similar discretization approach was adapted to study the contacts between hands and objects. In this work, we also assume the linear edges in the socket design, thus using an linear approximation of more complex shapes. Linear approximation can greatly simplify the optimization process and find good results locally. For example, Berenson used linear approximation to study the effect of force applied to flexible objects~\cite{Berenson2013-deformable}. 
+
+In this work, we adapted the assumption of point-surface contact, making the problem an extension of the caging problem~\cite{RimonBlack96, Rodriguez2010}. However, as the caging studies instances of contacts between fingers and objects, the design process introduced in this work also considers the changes and consequences of different contacts and forces. 
+
+% \section{Preliminaries}
+% \begin{itemize}
+% \item Back-chaining; 
+% \item Signed distance; 
+% \item Feasible design; joinery; generality; 
+% \end{itemize}
+
+% Is this needed? Skip for now. 
+% but can talk about the assembly, joinery, and all insertion-based. 
+% advantage of insertion? Seems should be in related work. 
+
+\section{Design process: from insertion to stability}
+% \begin{itemize}
+% \item Insertion transition stages; 
+% \item Contact Mode Transition graph; 
+% \item Sinks and transition feasibility; 
+% \item Gradient of edge-change; 
+% \item Stability: vertices; 
+% \item Similar mode graph, with partial order on rotation; 
+% \item Combine: iterative optimization; 
+% \end{itemize}
+
+We analyze the effect of the design on the manipulation process from two almost independent perspectives: insertion feasibility and after insertion stability. The insertion feasibility is easy to understand: whether the insertion can be successful or it fails. In our analysis, we assume there can be an error in the sensing and manipulating, resulting in wrong initial insertion configuration. Such insertion error, however, will be assumed to be upper bounded, and the insertion process should be feasible for any configuration within the error range to be a success. The manufacturing error is introduced as a uniform scale of the socket to simplify the analysis, even though the fabrication can appear both on socket and on joint. 
+
+After insertion, we want the joint to be able to move with a limited amount, which we refer as the stability. Such stability is mainly measured as the maximum rotation possible inside the socket for an inserted joint, without any contact leaving the socket. If the contacts is outside the socket, then the rotation can be unbounded. We consider a better design to have a smaller possible rotation within the socket. 
+
+In this section, we describe the two processes in detail, and present the complete process for the design. The analysis shown in this section is in 2D. We start with the constraint of insertion feasibility, which must be met for us to consider stability after insertion. 
+
+\subsection{Insertion}
+
+We adapt the point-edge contact model for our analysis, which leads to a relatively tolerant definition of the success criteria for insertion: all the contacts made on the joint is contacting the predefined edge on the socket ({\em goal state}). Here, contacting relation between points and edge are defined by the fully inserted configuration, and the contact-based definition of success tolerates the possible local variations due to errors. At the same time, we also would like to note that in the final success state, there can be certain contact points not making contact with the predefined edge, due to manufacturing error. 
+
+In order for the insertion to be successful, the joint must be able to reach the goal state regardless of the initial configuration, as long as it is within the error bound. If we make sure all possible configurations as a result of the an arbitrary initial configuration can lead to goal state, the insertion can be successful, otherwise there is a chance of failure. This analysis is very similar to the back-chaining used in the peg-in-hole problem, except we are confirming whether a design can make all back-chaining routes connected. 
+% However, we know that the configurations are continuous and it is impossible to test all. 
+
+We discrete the insertion process into a set of {\em contact modes} and the transitions among them. Given that the contact points on the joint is defined as $c_i, i=1\ldots, n$, and edges on the socket as $e_j, j=1,\ldots, m$, define the contact pair as a tuple $p_{i, j} = (c_i, e_j)$. We can then define a contact mode is a unique collection of contact pairs $M(i) = \{p_{a, b}, p_{c, d}, \ldots\}$. The goal state then can be described by a contact mode $M(g)$. Further, during the insertion process, we analyze only the effect of the rotation of socket edges. 
+
+\begin{lemma}
+Given a socket of linear edges and a peg of points,if the peg contact the socket at three or more points on at least two non-parallel edges, then there are only finite configurations where the peg can contact the socket with the specified point-edge contact relations.
+\end{lemma}
+
+\begin{proof}
+Given any valid configuration with $n$ points $p_1,..,p_n$ contacting on $m$ edges $e_1,..,e_m$, let’s move any two contact points $p_i$ and $p_j$ on their contact edges $e_i$ and $e_j$. 
+
+If $e_i$ = $e_j$ or $e_j$ is parallel to $e_i$, the peg is sliding without rotating during $p_i$ and $p_j$ moving, that is, all the trajectories of other contact points would be parallel to $e_i$. Notice there exists at least one point $p_k$ contacting edge $e_k$ non-parallel to $e_i$, the trajectory of $p_k$ has only one intersection with its contact edge $e_k$, which gives only one valid configuration to maintain its point-edge contact relations.
+
+If $e_i$ is non-parallel to $e_j$, the peg is continuously rotating during $p_i$ and $p_j$ moving. The trajectories of other contact points would be curves, which have only finite intersections with their linear contact edges. 
+\end{proof}
+
+\begin{lemma}
+Given a socket of non-parallel linear edges and a peg of points with $n$ points collinear, and given any two valid contact modes $M(i)$ and $M(j)$. If $M(i)$ and $M(j)$ both have $n+1$ or more contact pairs, for any trajectory from $M(i)$ to $M(j)$, $\exists M(k)$ with $n$ or less contact pairs.
+\end{lemma}
+
+\begin{proof}
+Choose any configuration $q_i$ of $M(i)$ and $q_j$ of $M(j)$, the configuration set of any trajectory from $q_i$ to $q_j$ is a compact set $[q_i,  q_j]$ which includes infinite configurations. Notice $n \geq 2$, $n+1$ contact pairs give three or more points contacting on at least two non-parallel edges. From \em{Lemma1}, we have only finite configurations of $M(i)$ and $M(j)$. Thus from $q_i$ to $q_j$, the peg must go through infinite configurations of $M(k)$ with $n$ or less contact pairs.
+\end{proof}
+
+\begin{lemma}
+Given a socket of linear edges and a peg of points, if there is no parallel edges of the socket and there are at most two collinear points of the peg, for any valid contact mode $M(i) = \{p_{a,b}, p_{c,d}, p_{e,f}\}$, any combination of $p_{a,b}$, $p_{c,d}$ and $p_{e,f}$ would be a valid contact mode.
+\end{lemma}
+
+\begin{proof}
+Given a valid configuration of $M(i)$, for any two contact pairs $p_{a,b}$ and $p_{c,d}$, move $c_a$ and $c_c$ on their contact edges $e_b$ and $e_d$. From \em{Lemma1}, we have only finite valid configurations of $M(i)$, so the third contact pair $p_{e,f}$ must break its contact relation, i.e., $c_e$ must leave or penetrate $e_f$ during the two points moving. 
+As the trajectory of $c_e$ would be a line non-parallel to $c_f$ or a curve open towards rotation point, which is inside the socket, a part of the trajectory must be inside the socket, which means there always exists a moving direction $d_k$ for the $c_a$ and $c_c$ that makes $c_e$ leave $e_f$.  Moving $c_a$ and $c_c$ along $d_k$, from \em{Lemma2}, after $c_e$ leaving $e_f$, there exist infinite valid configurations of $M(k) = \{p_{a,b}, p_{c,d}\}$ before other  points contacting. 
+\end{proof}
+
+The analysis process can be briefly described as follows. Given an initial design input, we first identify all valid contact modes using methods inspired by back-chaining. We then construct a directed graph $G_I = (V, E)$ where $V = \cup M(i)$. An edge $e(u\rightarrow v)$ is created if contact mode $u$ can transfer to $v$ following the insertion direction. Once the graph is constructed, we identify how many vertices have only incoming edges without outgoing edges, which we refer as {\em sinks}. A sink is not a desired sink if it is not at the goal state. There are also {\em pseudo-sinks} that have outgoing edges that only goes to another pseudo-sink. A pseudo sink is valid if it is adjacent to the goal state. When an undesired sink exist, the insertion fails. 
+
+When an insertion fails, this may not be the end for the given design. It is possible that an edge of the socket can be rotated by a small amount so that the sink will disappear. Such modifications are introduced to change the initial design input to validate the insertion. If no modification can be introduced to remove the sink, we declare the design is a failure. We can also identify the rotation directions for each of the socket edge that may cause the insertion to become a failure. We can then take the opposite direction and denote it as the {\em gradient} direction that will increase the chance of success of insertion. 
+
+% remarks of details of the insertion. 
+We will omit some of the further details of each step mentioned above, but give the following brief description of the approaches. First, we used a back-chaining approach to detect all the valid contact modes, starting from the goal-state. Each valid contact-mode is associated with some valid configurations. Second, we adapted similar force analysis used in~\cite{} to detect the possible motion direction, and compute the possible moving direction of the block to intersect with adjacent contact modes. We considered the pushing force is always along the tip of the block in the simulation and experiments in this work, but the analysis and procedure works if the force is along other directions. We also only considered neighboring contact modes, i.e. contact modes that has at most one contact pair difference. The contact mode transitions that creates or removes more than one contact pairs can either always be decomposed as a sequence of adjacent contact mode transitions, or be associated with special geometry or special force directions that are not along the insertion directions.
+
+\begin{lemma}
+Given a socket of non-parallel linear edges and a peg of points with $n$ points collinear, and given any two valid contact modes $M(i)$ and $M(j)$. If $|M(i)| - |M(j)| > 1$ or both $M(i)$ and $M(j)$ have $n+1$ or more contact pairs, and if there exist a transition from $M(i)$ to $M(j)$, then there always exist a sequence of contact modes $M_1$, $M_2$, $\ldots$, $M_k$, where $M_1 \subseteq M(i)$ and $M_k \subseteq M(j)$,  so that each adjacent contact modes in the sequence has less than $n$ contact pairs and is not differed by more than one contact pair.
+\end{lemma}
+
+Here, by degenerate, we mean that some edge lengths on the socket is the same as some distances between adjacent contact points on the joint. We omit the proof of the lemma, the detail of which can be found in our technical report~\cite{}. 
+
+One of the most important details we need to consider is how to include the possible contact modes that are created due to the initial errors. The back-chaining may still find these contact modes. In the meantime, we also need to test these contact modes directly from the extreme initial error configurations to make sure all cases are considered. Any identified contact mode will be part of the graph $G$, and the remaining analysis can be carried out as mentioned above. 
+
+
+\subsection{Stability}
+
+We can similarly create a graph $G_S$ for the stability analysis, which is based on the contact modes. The only difference is that we need to add a {\em cap} above the entrance of the socket, to make sure we only consider the contact modes inside the socket. During the stability analysis, we consider only the effect of moving contact points along the corresponding contact edges. 
+
+% partial order
+% contact point sliding / gradient direction
+% alternating optimization. 
+
+The benefit of constructing the graph in the stability analysis is to allow us to only consider a few contact modes and analyze them in isolation. Among different contact modes, we observe that we can construct a partial order on all the contact modes based on the possible rotation angles. Based on the partial order, we then only need to consider the ones that may lead to the largest rotation to analyze the stability. Any reduction in the possible rotation in those contact modes with the highest order would result in the improvement of the stability, as the partial order would remain intact to local perturbations of contact point locations on the joint. 
+
+
+\begin{lemma}
+Given a joint with sequence of point contacts $p_i, i=\{1, 2, \ldots, n\}$ with socket edges $e_j, j = \{1, 2, \ldots, m\}$, we can find all possible contact modes $M(\cdot)$, and construct partial order $\mathcal{S}$ on $M(\cdot)$ based on the maximum rotation for each contact mode. In the fully inserted configuration, if a single contact point $p_i$ slides along the contacting edge $e_j$ without creating a new contact mode, the partial order set $\mathcal{S}$ will remain the same. 
+\end{lemma}
+
+\begin{proof}
+The partial order $\mathcal{S}$ is created based on the different possible rotations of different contact modes. If no new contact mode is created while the contact point is sliding along the corresponding contact edge, the partial order should remain the same as long as the sliding of contact points affect the rotation angle on all contact modes in the same gradient direction. 
+
+Consider a single contact point, let us assume it slides towards one end of the corresponding edge and increase the distance with respect to the center of the joint. Then, all the rotations toward the sliding direction will meet an edge on the socket earlier if all the other contact points remain unchanged, i.e. rotation centers remain the same. A conflict will only be created when the rotation centers also slide along the edges and reduce the distance with respect to other contact points. But this conflicts the condition of only one contact point is moved. 
+\end{proof}
+
+Following the same argument above, the lemma above can actually be extended to the case where as long as all pair-wise distances between contact point changed monotonically without changing the contact modes, the partial order set $\mathcal{S}$ remains the same. 
+
+
+Then, we can change the design by sliding the contact points along the edges and only study the partial order that is associated with the maximum possible rotation. If the change of design reduces the rotation, we will adapt the changes. This, in the next iteration, will be validated in the insertion analysis to make sure the contact mode set remains the same. 
+
+
+\subsection{Complete procedure}
+
+% the complete procedure in the algorithm environment; 
+% in addition, details of notation, derivation, and result;
+The complete procedure that combines the above insertion analysis and stability analysis can then be described in Procedure~\ref{procedure:optdesign}. 
+
+\begin{myprocedure}
+\caption{Optimize design}
+\label{procedure:optdesign}
+\textbf{Input: Initial positions for all $p_i$ and $e_j$}; $\epsilon > 0$; $\Delta x, \Delta\theta$\\
+Compute all possible initial contact modes for the given $\Delta x$ and $\Delta\theta$; add to $G_I$\\
+\While{Improvements can be made} {
+	Construct $G_I$ for the current design;\\
+	Derive directions of edge rotation that may break insertion;\\
+	\If {$G_I$ has undesired sinks or disconnected} {
+		Rotate socket edges to remove the undesired sinks or connect $G_I$; \\
+		\If {cannot remove undesired sink or connect $G_I$} {
+			\textbf{break};
+		} 
+	}
+	Construct $G_S$, and derive $\mathcal{S}$;\\
+	Find point moving directions that can reduce maximum rotation; \\
+	\While{The move of $p$ can reduce maximum rotation and $p$ not $\epsilon$ close to end-points of corresponding edge $e$} {
+		Update best design;
+	}
+}
+return the best design; 
+\end{myprocedure}
+
+The procedure iterates between the validation of insertion and improvements of stability, and stops when no progress can be made. The construction of graphs $G_I$ and $G_S$ may be the most expensive steps in the procedure, which need to check different possible contact modes. The all possible contact modes can be a complex combination of contact pairs, but they can also be found by back-chaining. Along each direction in 2D, a contact point $p_i$ is selected as sliding point, and it is moved along the opposite direction of insertion without rotation. Every time a contact point projects to a new edge, which can be computed based on edge lengths and distance between contact points, a new test is introduced. The joint is rotated around $p_i$ to find the minimum and maximum rotations that remains to be valid, and the two corresponding contact modes are recorded. Repeat this process until $p_i$ is outside the socket, and do this for all $p_i$ will result in all valid contact modes. 
+
+The gradient direction of point $p_i$ to improve stability can be found by test the move of $p_i$ in different directions. The gradient direction of edge rotations to break insertion can be found by geometric and force analysis. These two processes consist mostly simple algebra operations and are fast. 
+
+There is one major flaw to this procedure: it needs an initial input of design. This means, the $n$ and $m$ is fixed for the entire run of this procedure. What is more, the corresponding edges and points are also fixed during the procedure. So, to find the actual best design overall, we need to loop over different combinations of $m$ and $n$, as well as different corresponding relations when $m \neq n$. Luckily, we do not need to consider the case where $m > n+1$ or $n > m+1$, as such case would result in redundancy. We also do not need to consider the case where $n > 6$, as that is also redundant base-on the analysis of planar caging and immobilization. 
+
+
+\section{Validation, simulation, and experiments}
+
+
+
+% \begin{itemize}
+% \item Analysis bound; different contact numbers; 
+% \item Simulation in bullet physics; 
+% \item Experiments with 2D blocks; 
+% \item Naive 3D projections; 
+% \end{itemize}
+
+We first ran the procedure in 2D, and compared different numbers of $m$ and $n$. The best designs are computed as follows. 
+
+
+We used the design in simulation first, and tested the success of insertion and possible rotations in bullet physics. By applying a unidirectional insertion force, we show that our design does not get stuck regardless of the initial insertion condition, while small perturbations of designs may result in premature lock, i.e. jammed. The possible rotations are also being tested in simulation, which verifies our computation in theoretical analysis. 
+
+
+We printed out several 2D designs as well, including one of the optimized design. We tested insertion with these blocks with Yumi, and found that our optimized design has higher success rate given the existence of errors. 
+
+We further projects the design into 3D. However, in this initial work, we can only conduct two naive possible projection schemes: a $90$ degree projection, and a $120$ degree projection, resulting in a square and a equilateral triangle respectively. We tested these 3D designs, and found that the design is valid and different projections are similar in 3D when not too much yaw rotation is introduced. When large yaw error exists, different projections start to differ in success rate. We will analyze in more detail how different 3D projections can be used based on different amount of error, balancing between chance of success and manufacturing feasibility. 
+
+
+% \subsection{Simulated evaluation in bullet physics}
+
+% \subsection{Experiments with physical blocks}
+
+% \subsection{Simple projections into 3D for validation}
+
+\section{Conclusions and future work}
+% \begin{itemize}
+% \item Detailed analysis of 3D projections; 
+% \item 3D validations; what if dropped? 
+% \item Experiments with hundreds of blocks; 
+% \end{itemize}
+
+
+In this work, we introduce an automated procedure to design a peg-in-hole type of joint. The procedure finds the {\em best} design in the existence of sensing, manipulation, and manufacturing errors. We assumed point-edge contact in 2D, and separated the analysis for insertion and after insertion stability. The procedure alternate the optimization between insertion and after insertion stability, until no improvements can be found. 
+
+The design is validated in simulation, as well as in physical experiments. The results show that our design do have benefits, and increases the chance of success under uncertainties. We also started to look into the extension to 3D, and showed preliminary results. One of the major future work directions is the exploration and analysis for 3D projects. We will also use the derived designs to enable the stable assembly of larger structures, following the similar design showed in~\cite{}. 
+
+\renewcommand*{\bibfont}{\small}
+\printbibliography
+
+\end{document}
+
